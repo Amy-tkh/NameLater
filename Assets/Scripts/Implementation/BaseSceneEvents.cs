@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class BaseSceneEvents : MonoBehaviour
 {
@@ -16,7 +17,7 @@ public class BaseSceneEvents : MonoBehaviour
     protected void InitializeEvents(List<System.Func<IEnumerator>> events)
     {
         eventSequence = events;
- 
+
         eventPos = PlayerPrefs.GetInt("DialogueEventIndex", 0);
 
         if (eventPos < 0 || eventPos >= eventSequence.Count)
@@ -27,12 +28,17 @@ public class BaseSceneEvents : MonoBehaviour
         }
 
         // 1. Restore the visual state based on the event we are about to run
-        SetSceneState(eventPos); 
-        
+        SetSceneState(eventPos);
+
         // 2. Restore the UI state and then start the event
         RestoreUIState(eventPos);
 
         StartCoroutine(eventSequence[eventPos]());
+    }
+
+    protected virtual IEnumerator EventStarter()
+    {
+        yield return null;
     }
 
     protected virtual void SetSceneState(int eventIndex)
@@ -72,11 +78,6 @@ public class BaseSceneEvents : MonoBehaviour
     public void Expression(GameObject container, string expressionName)
     {
         dialogueManager?.SetCharacterExpression(container, expressionName);
-    }
-
-    protected virtual IEnumerator EventStarter()
-    {
-        yield break; // Default: do nothing
     }
 
     public IEnumerator Pick(DialogueOption opt1, DialogueOption opt2, bool autoApplyToPersonality = true)
@@ -143,6 +144,19 @@ public class BaseSceneEvents : MonoBehaviour
         {
             settingBG.SetActive(false);
         }
+    }
+
+    public void OpenMainMenu()
+    {
+        SaveManager.Instance.SaveGame();
+        SceneManager.LoadScene(0);
+    }
+
+    public void QuitGame()
+    {
+        SaveManager.Instance.SaveGame();
+        Debug.Log("Quitting game...");
+        Application.Quit();
     }
 
     protected void RestoreUIState(int eventIndex)

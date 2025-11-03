@@ -7,23 +7,6 @@ using TMPro;
 
 public class DialogueManager : MonoBehaviour
 {
-    /*public static DialogueManager Instance;
-
-    void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-            // This is what keeps the object alive!
-            DontDestroyOnLoad(this.gameObject);
-        }
-        else
-        {
-            // Destroy any duplicates if a new scene tries to create one
-            Destroy(this.gameObject);
-        }
-    }*/
-
     [Header("UI References")]
     [SerializeField] protected CharacterOptions charOptions;
     public GameObject textBox;

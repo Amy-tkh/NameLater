@@ -31,20 +31,22 @@ public class Scene02Events : BaseSceneEvents
         yield return new WaitForSeconds(1);
         Speak("yuki", "Oh god, I'm so tired...");
         yield return new WaitForSeconds(1);
+        SaveManager.Instance.SaveGame();
     }
 
     IEnumerator Event1()
     {
         yield return new WaitForSeconds(2);
         Speak("yuki", "What should I do...");
-        yield return new WaitForSeconds(3);
+        yield return new WaitForSeconds(4);
 
         var opt1 = DialogueOption.Create("Do whatever you want", "protector", "thinker");
         var opt2 = DialogueOption.Create("Break the rules", "rebel", "masked one");
         yield return Pick(opt1, opt2, true);
-        
+
 
         yield return new WaitForSeconds(1);
+        SaveManager.Instance.SaveGame();
         fadeOut.SetActive(true);
     }
 }
