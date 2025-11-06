@@ -4,7 +4,7 @@ public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance;
     public Sound[] Music, SFX;
-    public AudioSource musicSource, sfxSource; 
+    public AudioSource musicSource, sfxSource;
 
     void Awake()
     {
@@ -18,6 +18,11 @@ public class AudioManager : MonoBehaviour
             // Destroy duplicate managers in new scenes
             Destroy(this.gameObject);
         }
+    }
+
+    private void Start()
+    {
+        PlayMusic("Game Music");
     }
 
     public void PlayMusic(string name)
@@ -34,7 +39,7 @@ public class AudioManager : MonoBehaviour
             musicSource.Play();
         }
     }
-    
+
     public void PlaySFX(string name)
     {
         Sound s = System.Array.Find(SFX, sound => sound.name == name);
@@ -47,6 +52,26 @@ public class AudioManager : MonoBehaviour
         {
             sfxSource.PlayOneShot(s.clip);
         }
+    }
+
+    public void StopMusic()
+    {
+        musicSource.Stop();
+    }
+
+    public void StopSFX()
+    {
+        sfxSource.Stop();
+    }
+
+    public void MusicControl(float lower)
+    {
+        musicSource.volume = lower;
+    }
+
+    public void SFXControl(float lower)
+    {
+        sfxSource.volume = lower;
     }
 
     // 💡 Public method to change volume based on player settings

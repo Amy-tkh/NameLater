@@ -42,7 +42,7 @@ public class Scene01Events : BaseSceneEvents
     IEnumerator Event2()
     {
         Expression(person2Container, "Person2 tired");
-        //PlayAudio("GirlSigh", AudioContainer);
+        PlayAudio("GirlSigh");
         Speak("haruka", "Why would it matter to you?");
         yield return new WaitForSeconds(2);
         SaveManager.Instance.SaveGame();
