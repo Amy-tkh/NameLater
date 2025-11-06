@@ -18,6 +18,7 @@ public class Scene02Events : BaseSceneEvents
         {
             EventStarter,
             Event1,
+            Event2,
         };
         InitializeEvents(events);
     }
@@ -47,6 +48,11 @@ public class Scene02Events : BaseSceneEvents
 
         yield return new WaitForSeconds(1);
         SaveManager.Instance.SaveGame();
+    }
+
+    IEnumerator Event2()
+    {
+        yield return new WaitForSeconds(1);
         fadeOut.SetActive(true);
     }
 }

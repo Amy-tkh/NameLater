@@ -70,9 +70,9 @@ public class BaseSceneEvents : MonoBehaviour
 
     }
 
-    public void PlayAudio(string audioName, GameObject characterAudioContainer)
+    public void PlayAudio(string audioName)
     {
-        dialogueManager?.SetCharacterAudio(characterAudioContainer, audioName);
+        AudioManager.Instance.PlaySFX(audioName);
     }
 
     public void Expression(GameObject container, string expressionName)

@@ -59,21 +59,6 @@ public class DialogueManager : MonoBehaviour
             Debug.LogError($"Expression '{expressionName}' not found in {container.name}");
     }
 
-    public void SetCharacterAudio(GameObject container, string audioName)
-    {
-        foreach (Transform child in container.transform)
-            child.gameObject.SetActive(false);
-
-        Transform audio = container.transform.Find(audioName);
-        if (audio != null)
-        {
-            audio.gameObject.SetActive(true);
-            audio.GetComponent<AudioSource>()?.Play();
-        }
-        else
-            Debug.LogError($"Audio '{audioName}' not found in {container.name}");
-    }
-
     public IEnumerator TypeOutText(string text, float charDelay = 0.03f)
     {
         textBox.SetActive(true);
