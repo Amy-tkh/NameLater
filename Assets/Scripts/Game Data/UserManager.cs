@@ -37,4 +37,9 @@ public class UserManager : MonoBehaviour
         ActiveUser = loadedData;
         Debug.Log("User Manager: Successfully loaded new personality data.");
     }
+
+    public PlayerPersonality GetActiveUser()
+    {
+        return ActiveUser;
+    }
 }

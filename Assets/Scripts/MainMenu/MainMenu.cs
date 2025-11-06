@@ -9,20 +9,20 @@ public class MainMenu : BaseSceneEvents
 
     public void StartNewGame()
     {
-        PlayAudio("ButtonClick", AudioContainer);
+        //PlayAudio("ButtonClick", AudioContainer);
         fadeOut.SetActive(true);
         StartCoroutine(LoadNewGameScene());
     }
 
     public void LoadGame()
     {
-        PlayAudio("ButtonClick", AudioContainer);
+        //PlayAudio("ButtonClick", AudioContainer);
         fadeOut.SetActive(true);
         StartCoroutine(LoadGameScene());
     }
     public void QuitGame()
     {
-        PlayAudio("ButtonClick", AudioContainer);
+        //PlayAudio("ButtonClick", AudioContainer);
         Debug.Log("Quitting game...");
         Application.Quit();
     }

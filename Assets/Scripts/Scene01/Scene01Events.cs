@@ -20,7 +20,8 @@ public class Scene01Events : BaseSceneEvents
         {
             Event1,
             Event2,
-            Event3
+            Event3,
+            Event4,
         };
         InitializeEvents(events); // Handled by base class
     }
@@ -34,14 +35,17 @@ public class Scene01Events : BaseSceneEvents
         Expression(person1Container, "Person1 sad");
         yield return new WaitForSeconds(2);
         Speak("yuki", "What are you doing here?");
+        yield return new WaitForSeconds(2);
+        SaveManager.Instance.SaveGame();
     }
 
     IEnumerator Event2()
     {
         Expression(person2Container, "Person2 tired");
-        PlayAudio("GirlSigh", AudioContainer);
+        PlayAudio("GirlSigh");
         Speak("haruka", "Why would it matter to you?");
         yield return new WaitForSeconds(2);
+        SaveManager.Instance.SaveGame();
     }
 
     IEnumerator Event3()
@@ -53,6 +57,14 @@ public class Scene01Events : BaseSceneEvents
         yield return new WaitForSeconds(4);
         PlayerPrefs.SetInt("DialogueEventIndex", 0);
         SceneManager.LoadScene("Scene02");
+        yield return new WaitForSeconds(1);
+        SaveManager.Instance.SaveGame();
+    }
+
+    IEnumerator Event4()
+    {
+        yield return new WaitForSeconds(1);
+        fadeOut.SetActive(true);
     }
 
 

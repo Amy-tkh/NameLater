@@ -4,14 +4,12 @@ using UnityEngine.SceneManagement;
 
 public class SaveManager : MonoBehaviour
 {
-    // You can make this a Singleton, just like your UserManager
     public static SaveManager Instance { get; private set; }
 
     private string saveFilePath;
 
     void Awake()
     {
-        // --- Standard Singleton Setup ---
         if (Instance == null)
         {
             Instance = this;
@@ -23,12 +21,12 @@ public class SaveManager : MonoBehaviour
             return;
         }
         
-        // --- THIS IS THE IMPORTANT PART ---
-        // 1. Define your save file name
+        
+        // save file name
         string saveFileName = "saveSlot1.json";
 
-        // 2. Combine the persistent path with your file name
-        // Path.Combine is the safest way to build file paths.
+        
+        // build file path
         saveFilePath = Path.Combine(Application.persistentDataPath, saveFileName);
 
         Debug.Log("Save file will be located at: " + saveFilePath);
@@ -38,6 +36,12 @@ public class SaveManager : MonoBehaviour
     {
         // Create a new GameSaveData object to hold all the data
         GameSaveData saveData = new GameSaveData();
+
+        // Populate it with current game data
+        saveData.playerPersonality = UserManager.Instance.GetActiveUser();
+        saveData.currentSceneIndex = PlayerPrefs.GetInt("currentSceneIndex", 0);
+        saveData.DialogueEventIndex = PlayerPrefs.GetInt("DialogueEventIndex", 0);
+        saveData.saveTimestamp = System.DateTime.Now;
 
         // Convert the data to a JSON string
         string json = JsonUtility.ToJson(saveData, true); // 'true' formats it nicely

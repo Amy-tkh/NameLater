@@ -7,23 +7,6 @@ using TMPro;
 
 public class DialogueManager : MonoBehaviour
 {
-    /*public static DialogueManager Instance;
-
-    void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-            // This is what keeps the object alive!
-            DontDestroyOnLoad(this.gameObject);
-        }
-        else
-        {
-            // Destroy any duplicates if a new scene tries to create one
-            Destroy(this.gameObject);
-        }
-    }*/
-
     [Header("UI References")]
     [SerializeField] protected CharacterOptions charOptions;
     public GameObject textBox;
@@ -33,32 +16,22 @@ public class DialogueManager : MonoBehaviour
     public TMP_Text mainTextObject;
     public GameObject options;
     public GameObject nextButton;
-    private DialogueOption selectedOption = null;
-
-    public IEnumerator WaitCoroutine(int seconds)
-    {
-        yield return new WaitForSeconds(seconds);
-    }
-
+    
 
     public void NextButtonFunction(ref List<System.Func<IEnumerator>> eventSequence, ref int eventPos)
     {
         Debug.LogWarning("this 2.1: " + eventPos);
         eventPos++;
 
-        // 2. Save the new bookmark
         PlayerPrefs.SetInt("DialogueEventIndex", eventPos);
 
-        // 3. Check if this new bookmark is valid
         if (eventPos < eventSequence.Count)
         {
-            // 4. Play the event at the NEW position
             StartCoroutine(eventSequence[eventPos]());
-            nextButton.SetActive(false); // Hide button until event is done
+            nextButton.SetActive(false); 
         }
         else
         {
-            // We are at the end of the scene
             Debug.Log("End of scene events. eventPos is " + eventPos);
             nextButton.SetActive(false);
         }
@@ -86,30 +59,14 @@ public class DialogueManager : MonoBehaviour
             Debug.LogError($"Expression '{expressionName}' not found in {container.name}");
     }
 
-    public void SetCharacterAudio(GameObject container, string audioName)
-    {
-        foreach (Transform child in container.transform)
-            child.gameObject.SetActive(false);
-
-        Transform audio = container.transform.Find(audioName);
-        if (audio != null)
-        {
-            audio.gameObject.SetActive(true);
-            audio.GetComponent<AudioSource>()?.Play();
-        }
-        else
-            Debug.LogError($"Audio '{audioName}' not found in {container.name}");
-    }
-
     public IEnumerator TypeOutText(string text, float charDelay = 0.03f)
     {
         textBox.SetActive(true);
         mainTextObject.gameObject.SetActive(true);
-        if (mainTextObject == null) yield break; // Safety check
+        if (mainTextObject == null) yield break; 
 
-        mainTextObject.text = ""; // Clear the text
+        mainTextObject.text = ""; 
 
-        // Loop through each character and add it to the visible text
         foreach (char c in text)
         {
             mainTextObject.text += c;
@@ -140,9 +97,8 @@ public class DialogueManager : MonoBehaviour
 
     }
 
-    public IEnumerator AssignChoice(DialogueOption option, string buttonName, bool autoApplyToPersonality = true)
+    public void AssignChoice(DialogueOption option, string buttonName, bool autoApplyToPersonality = true)
     {
-        // Assign options to UI buttons
         options.SetActive(true);
         nextButton.SetActive(false);
         mainTextObject.gameObject.SetActive(false);
@@ -158,34 +114,23 @@ public class DialogueManager : MonoBehaviour
         {
             Debug.LogError("[DIALOGUE ERROR] Option1 button is missing a Text component in its children!");
         }
+    }
 
-        // Wait until player picks
-        yield return new WaitUntil(() => selectedOption != null);
+    public void WhenOptionSelected(DialogueOption option, bool autoApplyToPersonality)
+    {
+        Debug.Log($"[DIALOGUE DEBUG] Player Selected: '{option.text}'");
 
-        // Debug 3: Selection confirmation
-        Debug.Log($"[DIALOGUE DEBUG] Player Selected: '{selectedOption.text}'");
-
-        // Apply the choice
-        if (autoApplyToPersonality && selectedOption != null)
+        if (autoApplyToPersonality && option != null)
         {
-            UserManager.Instance.ActiveUser.AddPoints(selectedOption);
+            UserManager.Instance.ActiveUser.AddPoints(option);
+            Debug.Log("[DIALOGUE DEBUG] Applied points to PlayerPersonality.");
         }
 
-        // Clean up
+        BaseSceneEvents.optionChosen = "";
+
+
         options.SetActive(false);
         nextButton.SetActive(true);
         mainTextObject.gameObject.SetActive(true);
-
-    }
-
-    void OnOptionSelected(DialogueOption option)
-    {
-        selectedOption = option;
-    }
-
-    // Getter to retrieve the result
-    public DialogueOption GetLastSelectedOption()
-    {
-        return selectedOption;
     }
 }

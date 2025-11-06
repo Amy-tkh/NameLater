@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class BaseSceneEvents : MonoBehaviour
 {
@@ -10,16 +11,15 @@ public class BaseSceneEvents : MonoBehaviour
     [SerializeField] protected CharacterOptions charOptions;
     protected List<System.Func<IEnumerator>> eventSequence = new();
     protected int eventPos = 0;
+    public static string optionChosen = "";
 
-    // Call this in Start() of each scene to set up events
+
     protected void InitializeEvents(List<System.Func<IEnumerator>> events)
     {
         eventSequence = events;
 
-        // Get the bookmark
         eventPos = PlayerPrefs.GetInt("DialogueEventIndex", 0);
 
-        // Check if the bookmark is bad
         if (eventPos < 0 || eventPos >= eventSequence.Count)
         {
             Debug.LogWarning("Invalid eventPos loaded. Resetting to 0.");
@@ -27,8 +27,18 @@ public class BaseSceneEvents : MonoBehaviour
             PlayerPrefs.SetInt("DialogueEventIndex", 0); // Save the reset
         }
 
-        // Start the correct event
+        // 1. Restore the visual state based on the event we are about to run
+        SetSceneState(eventPos);
+
+        // 2. Restore the UI state and then start the event
+        RestoreUIState(eventPos);
+
         StartCoroutine(eventSequence[eventPos]());
+    }
+
+    protected virtual IEnumerator EventStarter()
+    {
+        yield return null;
     }
 
     protected virtual void SetSceneState(int eventIndex)
@@ -36,7 +46,6 @@ public class BaseSceneEvents : MonoBehaviour
         // Default implementation does nothing
     }
 
-    // Shared NextButton logic — works for ALL scenes
     public void NextButton()
     {
         dialogueManager.NextButtonFunction(ref eventSequence, ref eventPos);
@@ -61,9 +70,9 @@ public class BaseSceneEvents : MonoBehaviour
 
     }
 
-    public void PlayAudio(string audioName, GameObject characterAudioContainer)
+    public void PlayAudio(string audioName)
     {
-        dialogueManager?.SetCharacterAudio(characterAudioContainer, audioName);
+        AudioManager.Instance.PlaySFX(audioName);
     }
 
     public void Expression(GameObject container, string expressionName)
@@ -71,26 +80,58 @@ public class BaseSceneEvents : MonoBehaviour
         dialogueManager?.SetCharacterExpression(container, expressionName);
     }
 
-    // Virtual so scenes can override if needed
-    protected virtual IEnumerator EventStarter()
+    public IEnumerator Pick(DialogueOption opt1, DialogueOption opt2, bool autoApplyToPersonality = true)
     {
-        yield break; // Default: do nothing
+        Debug.Log("[PICK DEBUG] Pick coroutine started."); // NEW
+        dialogueManager.AssignChoice(opt1, "Option1", autoApplyToPersonality);
+        dialogueManager.AssignChoice(opt2, "Option2", autoApplyToPersonality);
+
+        Debug.Log("[PICK DEBUG] Waiting for optionChosen to be set..."); // NEW
+
+        yield return new WaitUntil(() => BaseSceneEvents.optionChosen != "");
+        Debug.Log($"[PICK DEBUG] Coroutine woke up. optionChosen is: {BaseSceneEvents.optionChosen}"); // Shows what was read
+
+        DialogueOption selectedOption = null;
+
+        if (optionChosen == "opt1")
+        {
+            selectedOption = opt1;
+            Debug.Log("[PICK DEBUG] Matched opt1. selectedOption is NOT null.");
+        }
+        else if (optionChosen == "opt2")
+        {
+            selectedOption = opt2;
+            Debug.Log("[PICK DEBUG] Matched opt2. selectedOption is NOT null.");
+        }
+        else
+        {
+            // If you see the "Coroutine woke up" log but NOT the "Matched" log, 
+            // it means the string comparison failed, and this log should appear:
+            Debug.LogError($"[PICK ERROR] optionChosen value '{optionChosen}' did not match 'opt1' or 'opt2'."); 
+        }
+
+        if (selectedOption != null)
+        {
+            dialogueManager.WhenOptionSelected(selectedOption, autoApplyToPersonality);
+            // You should now see the WhenOptionSelected log!
+        }
+
+        BaseSceneEvents.optionChosen = "";
     }
 
-    protected void Wait(int seconds)
+    public void GiveSelectedOption(string buttonName)
     {
-        StartCoroutine(dialogueManager.WaitCoroutine(seconds));
-    }
-
-    public void Pick(DialogueOption opt1, DialogueOption opt2, bool autoApplyToPersonality = true)
-    {
-        StartCoroutine(dialogueManager.AssignChoice(opt1, "Option1", autoApplyToPersonality));
-        StartCoroutine(dialogueManager.AssignChoice(opt2, "Option2", autoApplyToPersonality));
-    }
-
-    public void selectOption(DialogueOption option)
-    {
-        dialogueManager.OnOptionSelected(option);
+        Debug.Log($"[GSO DEBUG] Clicked: {buttonName}"); // NEW
+        if (buttonName == "Option1")
+        {
+            BaseSceneEvents.optionChosen = "opt1";
+            Debug.Log(BaseSceneEvents.optionChosen);
+        }
+        else if (buttonName == "Option2")
+        {
+            BaseSceneEvents.optionChosen = "opt2";
+            Debug.Log(BaseSceneEvents.optionChosen);
+        }
     }
 
     public void OpenSetting(GameObject settingBG)
@@ -104,5 +145,24 @@ public class BaseSceneEvents : MonoBehaviour
             settingBG.SetActive(false);
         }
     }
+
+    public void OpenMainMenu()
+    {
+        SaveManager.Instance.SaveGame();
+        SceneManager.LoadScene(0);
+    }
+
+    public void QuitGame()
+    {
+        SaveManager.Instance.SaveGame();
+        Debug.Log("Quitting game...");
+        Application.Quit();
+    }
+
+    protected void RestoreUIState(int eventIndex)
+    {
+        // Ensure the main UI elements are visible
+        dialogueManager.nextButton.SetActive(true);
+    }    
 
 }
