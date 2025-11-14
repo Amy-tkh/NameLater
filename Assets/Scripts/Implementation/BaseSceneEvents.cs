@@ -7,12 +7,35 @@ using UnityEngine.SceneManagement;
 public class BaseSceneEvents : MonoBehaviour
 {
     [Header("Shared References")]
-    [SerializeField] protected DialogueManager dialogueManager;
-    [SerializeField] protected CharacterOptions charOptions;
+    DialogueManager dm; 
+    CharacterOptions co;
     protected List<System.Func<IEnumerator>> eventSequence = new();
     protected int eventPos = 0;
     public static string optionChosen = "";
 
+    void Awake()
+    {
+        try
+        {
+        // This is the line that is crashing
+        dm = MainManager.Instance.DialogueManager; 
+
+        // This log will only appear if the line above *succeeds*
+        if (dm == null)
+        {
+            Debug.LogError("[BaseSceneEvents] 'dm' is NULL *after* assignment.");
+        }
+        else
+        {
+            Debug.Log("[BaseSceneEvents] 'dm' was successfully assigned!");
+        }
+        }
+        catch (System.Exception e)
+        {
+            // This will CATCH the silent crash and print it
+            Debug.LogError($"[BaseSceneEvents] CRASH IN AWAKE: {e.Message}");
+        }
+    }
 
     protected void InitializeEvents(List<System.Func<IEnumerator>> events)
     {
@@ -30,9 +53,6 @@ public class BaseSceneEvents : MonoBehaviour
         // 1. Restore the visual state based on the event we are about to run
         SetSceneState(eventPos);
 
-        // 2. Restore the UI state and then start the event
-        RestoreUIState(eventPos);
-
         StartCoroutine(eventSequence[eventPos]());
     }
 
@@ -48,26 +68,13 @@ public class BaseSceneEvents : MonoBehaviour
 
     public void NextButton()
     {
-        dialogueManager.NextButtonFunction(ref eventSequence, ref eventPos);
+        dm.NextButtonFunction(ref eventSequence, ref eventPos);
     }
 
     // Helper methods
     public void Speak(string characterName, string text)
     {
-
-        CharacterData character = charOptions?.GetCharacterByName(characterName);
-
-        if (character == null)
-        {
-
-            Debug.LogError($"Character '{characterName}' not found!");
-
-            return;
-
-        }
-        dialogueManager?.SetSpeakingCharacter(character);
-        StartCoroutine(dialogueManager.TypeOutText(text));
-
+        dm.StartCoroutine(dm.Speak(characterName, text));
     }
 
     public void PlayAudio(string audioName)
@@ -77,14 +84,14 @@ public class BaseSceneEvents : MonoBehaviour
 
     public void Expression(GameObject container, string expressionName)
     {
-        dialogueManager?.SetCharacterExpression(container, expressionName);
+        dm?.SetCharacterExpression(container, expressionName);
     }
 
     public IEnumerator Pick(DialogueOption opt1, DialogueOption opt2, bool autoApplyToPersonality = true)
     {
         Debug.Log("[PICK DEBUG] Pick coroutine started."); // NEW
-        dialogueManager.AssignChoice(opt1, "Option1", autoApplyToPersonality);
-        dialogueManager.AssignChoice(opt2, "Option2", autoApplyToPersonality);
+        dm.AssignChoice(opt1, "Option1", autoApplyToPersonality);
+        dm.AssignChoice(opt2, "Option2", autoApplyToPersonality);
 
         Debug.Log("[PICK DEBUG] Waiting for optionChosen to be set..."); // NEW
 
@@ -112,7 +119,7 @@ public class BaseSceneEvents : MonoBehaviour
 
         if (selectedOption != null)
         {
-            dialogueManager.WhenOptionSelected(selectedOption, autoApplyToPersonality);
+            dm.WhenOptionSelected(selectedOption, autoApplyToPersonality);
             // You should now see the WhenOptionSelected log!
         }
 
@@ -158,11 +165,5 @@ public class BaseSceneEvents : MonoBehaviour
         Debug.Log("Quitting game...");
         Application.Quit();
     }
-
-    protected void RestoreUIState(int eventIndex)
-    {
-        // Ensure the main UI elements are visible
-        dialogueManager.nextButton.SetActive(true);
-    }    
 
 }
