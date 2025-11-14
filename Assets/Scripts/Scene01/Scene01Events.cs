@@ -10,7 +10,6 @@ public class Scene01Events : BaseSceneEvents
     public GameObject fadeOut;
     public GameObject person2Container;
     public GameObject person1Container;
-    public GameObject AudioContainer;
 
     public void Start()
     {

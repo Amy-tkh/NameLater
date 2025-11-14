@@ -42,6 +42,8 @@ public class SaveManager : MonoBehaviour
         saveData.currentSceneIndex = PlayerPrefs.GetInt("currentSceneIndex", 0);
         saveData.DialogueEventIndex = PlayerPrefs.GetInt("DialogueEventIndex", 0);
         saveData.saveTimestamp = System.DateTime.Now;
+        saveData.MusicVolume = PlayerPrefs.GetFloat("MusicVolume", 1.0f);
+        saveData.SFXVolume = PlayerPrefs.GetFloat("SFXVolume", 1.0f);
 
         // Convert the data to a JSON string
         string json = JsonUtility.ToJson(saveData, true); // 'true' formats it nicely
@@ -110,6 +112,8 @@ public class SaveManager : MonoBehaviour
             UserManager.Instance.SetActiveUser(loadedData.playerPersonality);
             PlayerPrefs.SetInt("currentSceneIndex", loadedData.currentSceneIndex);
             PlayerPrefs.SetInt("DialogueEventIndex", loadedData.DialogueEventIndex);
+            PlayerPrefs.SetFloat("MusicVolume", loadedData.MusicVolume);
+            PlayerPrefs.SetFloat("SFXVolume", loadedData.SFXVolume);
 
             // Finally, load the correct scene
             SceneManager.LoadScene(loadedData.currentSceneIndex);

@@ -7,6 +7,8 @@ public class GameSaveData
     public int DialogueEventIndex;
     public int currentSceneIndex;
     public DateTime saveTimestamp;
+    public float MusicVolume;
+    public float SFXVolume;
 
     public GameSaveData()
     {

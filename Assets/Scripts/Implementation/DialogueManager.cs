@@ -8,15 +8,99 @@ using TMPro;
 public class DialogueManager : MonoBehaviour
 {
     [Header("UI References")]
-    [SerializeField] protected CharacterOptions charOptions;
-    public GameObject textBox;
-    public TMP_Text charNameText;
-    public RawImage nameBoxImage; 
-    public RawImage dialogueBoxImage;
-    public TMP_Text mainTextObject;
-    public GameObject options;
-    public GameObject nextButton;
+    private GameObject textBox;
+    private TMP_Text charNameText;
+    private RawImage nameBoxImage; 
+    private RawImage dialogueBoxImage;
+    private TMP_Text mainTextObject;
+    private GameObject options;
+    private GameObject nextButton;
+    public GameObject DialogueUIPrefab;
+    private GameObject currentUIInstance;
     
+    void OnEnable()
+    {
+        // Subscribe to the sceneLoaded event
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDisable()
+    {
+        // Unsubscribe when the object is destroyed
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    // This method will be called every time a new scene is loaded
+    void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+    {
+        // Check the index of the NEWLY loaded scene
+        if (scene.buildIndex != 0) // If it's not the Main Menu
+        {
+            Debug.Log($"[DialogueManager] Game scene (Index {scene.buildIndex}) loaded. Initializing UI.");
+            InitializeUI();
+        }
+        else
+        {
+            Debug.Log($"[DialogueManager] Main Menu (Index 0) loaded. Skipping UI init.");
+        }
+    }
+
+    /*void Awake()
+    {
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex != 0)
+        {
+            InitializeUI();
+        }
+    }*/
+
+    public void InitializeUI()
+    {
+        // Instantiate the UI into the current scene
+        currentUIInstance = Instantiate(DialogueUIPrefab);
+        if (currentUIInstance == null)
+        {
+            Debug.LogError("Failed to instantiate UI Prefab! Check DialogueUIPrefab reference.");
+            return;
+        }
+
+        // Iterate through all children (active or inactive) to find "TextBox"
+        Transform textBoxTransform = null;
+        foreach (Transform child in currentUIInstance.transform)
+        {
+            if (child.name == "TextBox")
+            {
+                textBoxTransform = child;
+                Debug.Log("Found 'TextBox' in UI Prefab.");
+                break;
+            }
+        }
+
+        if (textBoxTransform == null)
+        {
+            Debug.LogError("FATAL: Could not find 'TextBox' in UI Prefab. Check spelling.");
+            return;
+        }
+
+        this.textBox = textBoxTransform.gameObject;
+        this.options = textBoxTransform.Find("Options")?.gameObject;
+        this.nextButton = textBoxTransform.Find("Button")?.gameObject;
+        this.charNameText = textBoxTransform.Find("CharcaterNBox/CharName")?.GetComponent<TMP_Text>();
+        this.nameBoxImage = textBoxTransform.Find("CharcaterNBox")?.GetComponent<RawImage>();
+        this.dialogueBoxImage = textBoxTransform.GetComponent<RawImage>();
+        this.mainTextObject = textBoxTransform.Find("SpeakingText")?.GetComponent<TMP_Text>();
+
+        Button btn = this.nextButton.GetComponent<Button>();
+        if (btn != null)
+        {
+            btn.onClick.RemoveAllListeners();
+            
+            // Find the BaseSceneEvents instance
+            BaseSceneEvents sceneEvents = MainManager.Instance.SceneEvents;
+            
+            // Point the button to the new public function
+            btn.onClick.AddListener(() => sceneEvents.NextButton());
+        }
+    }
 
     public void NextButtonFunction(ref List<System.Func<IEnumerator>> eventSequence, ref int eventPos)
     {
@@ -79,21 +163,22 @@ public class DialogueManager : MonoBehaviour
         nextButton.SetActive(true);
     }
     
-    public void Speak(string characterName, string text)
+    public IEnumerator Speak(string characterName, string text)
     {
 
-        CharacterData character = charOptions?.GetCharacterByName(characterName);
+        CharacterData character = MainManager.Instance.CharOptions.GetCharacterByName(characterName);
 
         if (character == null)
         {
 
             Debug.LogError($"Character '{characterName}' not found!");
 
-            return;
+            yield break;
 
         }
         SetSpeakingCharacter(character);
-        StartCoroutine(TypeOutText(text));
+
+        yield return StartCoroutine(TypeOutText(text));
 
     }
 
